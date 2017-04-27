@@ -5,7 +5,7 @@ module.exports = {
   devServer: {
     contentBase: path.join(__dirname, 'static')
   },
-  entry: [
+  entry: ["babel-polyfill",
     path.join(__dirname, '../index.web.js')
   ],
   module: {
