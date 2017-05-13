@@ -3,7 +3,8 @@ import {
   StyleSheet,
   Text,
   View,
-  Platform
+  Platform,
+  Dimensions
 } from 'react-native'
 import { Button } from 'react-native-elements'
 import { TabViewAnimated, TabBarTop } from 'react-native-tab-view'
@@ -106,8 +107,13 @@ export default class MainView extends React.Component {
   }
 
   render () {
+    const initialLayout = {
+      height: 0,
+      width: Dimensions.get('window').width,
+    };
     return (
       <TabViewAnimated
+        initialLayout = {initialLayout}
         style={styles.tabContainer}
         navigationState={this.state}
         renderScene={this.renderTabScene}

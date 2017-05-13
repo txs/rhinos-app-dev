@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable max-len */
 import React, { Component } from 'react'
-import { StyleSheet, View, TouchableOpacity, Easing, Text } from 'react-native'
+import { StyleSheet, View, TouchableOpacity, Easing, Text, Dimensions } from 'react-native'
 import { SideMenu } from 'react-native-elements'
 import NavigationBar from 'react-native-navbar'
 import Icon from 'react-native-vector-icons/FontAwesome'
@@ -14,6 +14,7 @@ import AboutUs from './AboutUs'
 import baseStyles from '../baseStyles'
 import AppInit from 'utils/init' // Webpack alias for Web mode: 'init.web.js'
 import Meteor, { createContainer } from 'react-native-meteor';
+import Measure from 'react-measure';
 
 // console.log(ReactDOM);
 
@@ -22,6 +23,8 @@ const SERVER_URL = 'ws://localhost:2000/websocket';
 
 
 class App extends Component {
+
+
   componentWillMount() {
     Meteor.connect(SERVER_URL);
   }
@@ -52,53 +55,91 @@ class App extends Component {
     this.toggleSideMenu(false)
     this.refs.nav.linkTo(this, menuItem.link)
   }
+  _onLayout = (event) => {
+    let {width, height} = Dimensions.get('window')
+    // console.log(height);
+
+  //  console.log('------------------------------------------------' + JSON.stringify(event.nativeEvent.layout));
+   //
+   this.setState({
+     layout:{
+       height:height,
+       width:width,
+     }
+    })
+   }
 
   render () {
+    // let {width, height} = Dimensions.get('window')
+    // console.log(width);
+
     const leftButtonConfig = (
       <TouchableOpacity onPress={() => this.toggleSideMenu()} style={{ margin: 5 }}>
         <Icon name="bars" size={30} color={baseStyles.BRAND} />
       </TouchableOpacity>
     )
     const titleConfig = { title: 'Rhinos-app' }
+    const cStylesview = StyleSheet.flatten([styles.view, this.state.layout]);
 
     return (
-      <SideMenu MenuComponent={<AppMenu onItemPress={this.appMenuItemClick} style={{ backgroundColor: baseStyles.BRAND_DARK }} />}
-                toggled={this.state.toggled}>
-        <View style={styles.view}>
-          <NavigationBar style={{ backgroundColor: baseStyles.BRAND_LIGHT }} title={titleConfig} leftButton={leftButtonConfig} />
+      // <View onLayout={this._onLayout}>
+      <Measure
+        onMeasure={(dimensions) => {
+          // this._onLayout(dimensions)
+          // Dimensions.get('window')
+          this.setState({
+            layout:{
+              width:dimensions.width,
+              height:dimensions.height,
+            }
+           })
 
-          <View style={styles.container}>
-            <Text style={styles.welcome}>
-              Welcome to React Native + Meteor!
-            </Text>
-            <Text style={styles.instructions}>
-              Item Count: {this.props.count}
-            </Text>
+          // console.log(dimensions);
 
-            <TouchableOpacity style={styles.button} onPress={this.handleAddItem}>
-              <Text>Add Item</Text>
-            </TouchableOpacity>
+          // this.setState({dimensions})
+        }}
+      >
+        {/*// <View onLayout={this._onLayout}>*/}
+        {/*<View>*/}
+        <SideMenu MenuComponent={<AppMenu onItemPress={this.appMenuItemClick} style={{ backgroundColor: baseStyles.BRAND_DARK, width: "100%" }} />}
+                  toggled={this.state.toggled} >
+          <View style={cStylesview} >
+            <NavigationBar style={{ backgroundColor: baseStyles.BRAND_LIGHT }} title={titleConfig} leftButton={leftButtonConfig} />
+
+            <View style={styles.container}>
+              <Text style={styles.welcome}>
+                Welcome to React Native + Meteor!
+              </Text>
+              <Text style={styles.instructions}>
+                Item Count: {this.props.count}
+              </Text>
+
+              <TouchableOpacity style={styles.button} onPress={this.handleAddItem}>
+                <Text>Add Item</Text>
+              </TouchableOpacity>
+            </View>
+
+            <SimpleNavigator style={cStylesview}  ref="nav"
+                             views={{
+                               initialView: MainView,
+                               contactUs: ContactUs,
+                               aboutUs: AboutUs,
+                               personDetails: {
+                                 component: PersonDetails, fx: { prop: 'top', fromValue: 500, toValue: 0, duration: 200, easing: Easing.ease }
+                               }
+                             }}
+            />
           </View>
-
-          <SimpleNavigator ref="nav"
-                           views={{
-                             initialView: MainView,
-                             contactUs: ContactUs,
-                             aboutUs: AboutUs,
-                             personDetails: {
-                               component: PersonDetails, fx: { prop: 'top', fromValue: 500, toValue: 0, duration: 200, easing: Easing.ease }
-                             }
-                           }}
-          />
-        </View>
-      </SideMenu>
+        </SideMenu>
+        {/*// </View>*/}
+      </Measure>
     )
   }
 }
 
 export default createContainer(() => {
   const itemss = Meteor.subscribe('items');
-  console.log(Meteor.collection('items').findOne());
+  // console.log(Meteor.collection('items').findOne());
 
   return {
     count: Meteor.collection('items').find().length,
@@ -106,6 +147,9 @@ export default createContainer(() => {
 }, App);
 
 const styles = StyleSheet.create({
+  root: {
+    width: '100%',
+  },
   view: {
     flex: 1,
     backgroundColor: '#fff'
